@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="160" viewBox="0 0 800 160">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&amp;display=swap');
+
+      .bg { fill: #0a0a0f; }
+      .border { fill: none; stroke: #FCEE0A; stroke-width: 1.5; opacity: 0.4; }
+      .corner { fill: #FCEE0A; }
+
+      .title {
+        font-family: 'Share Tech Mono', 'Courier New', monospace;
+        font-size: 48px;
+        font-weight: bold;
+        fill: #FCEE0A;
+        letter-spacing: 6px;
+      }
+      .sub {
+        font-family: 'Share Tech Mono', 'Courier New', monospace;
+        font-size: 13px;
+        fill: #C678DD;
+        letter-spacing: 4px;
+      }
+      .ver {
+        font-family: 'Share Tech Mono', 'Courier New', monospace;
+        font-size: 13px;
+        fill: #00F0FF;
+        letter-spacing: 2px;
+      }
+      .tag {
+        font-family: 'Share Tech Mono', 'Courier New', monospace;
+        font-size: 11px;
+        fill: #39FF14;
+        letter-spacing: 3px;
+      }
+
+      /* Glitch layers */
+      .glitch-r { fill: #ff003c; opacity: 0; }
+      .glitch-c { fill: #00F0FF; opacity: 0; }
+
+      /* Typing cursor */
+      .cursor { fill: #FCEE0A; }
+    </style>
+
+    <!-- Scanline pattern -->
+    <pattern id="scan" x="0" y="0" width="800" height="4" patternUnits="userSpaceOnUse">
+      <rect width="800" height="1" fill="#FCEE0A" opacity="0.03"/>
+    </pattern>
+
+    <!-- Glow filter -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-strong" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="160" class="bg"/>
+  <rect width="800" height="160" fill="url(#scan)"/>
+
+  <!-- Border frame -->
+  <rect x="6" y="6" width="788" height="148" class="border" rx="2"/>
+
+  <!-- Corner decorations -->
+  <rect x="6" y="6" width="12" height="2" fill="#FCEE0A" opacity="0.8"/>
+  <rect x="6" y="6" width="2" height="12" fill="#FCEE0A" opacity="0.8"/>
+  <rect x="782" y="6" width="12" height="2" fill="#FCEE0A" opacity="0.8"/>
+  <rect x="798" y="6" width="2" height="12" fill="#FCEE0A" opacity="0.8"/>
+  <rect x="6" y="152" width="12" height="2" fill="#FCEE0A" opacity="0.8"/>
+  <rect x="6" y="142" width="2" height="12" fill="#FCEE0A" opacity="0.8"/>
+  <rect x="782" y="152" width="12" height="2" fill="#FCEE0A" opacity="0.8"/>
+  <rect x="798" y="142" width="2" height="12" fill="#FCEE0A" opacity="0.8"/>
+
+  <!-- Left accent line -->
+  <rect x="20" y="20" width="2" height="120" fill="#FCEE0A" opacity="0.3"/>
+  <rect x="778" y="20" width="2" height="120" fill="#FCEE0A" opacity="0.3"/>
+
+  <!-- ── MAIN TITLE — NETWATCH OS ─────────────────────────── -->
+  <!-- Glitch red layer -->
+  <text x="400" y="88" text-anchor="middle" class="title glitch-r" filter="url(#glow)">NETWATCH OS</text>
+  <!-- Glitch cyan layer -->
+  <text x="400" y="88" text-anchor="middle" class="title glitch-c" filter="url(#glow)">NETWATCH OS</text>
+  <!-- Main layer -->
+  <text x="400" y="88" text-anchor="middle" class="title" filter="url(#glow-strong)" id="main-title">NETWATCH OS</text>
+
+  <!-- Version badge -->
+  <rect x="596" y="94" width="84" height="18" fill="#FCEE0A" opacity="0" id="ver-bg">
+    <animate attributeName="opacity" values="0;0;0;0;1;1" dur="4s" repeatCount="indefinite"/>
+  </rect>
+  <text x="638" y="107" text-anchor="middle" class="ver" id="ver-text" opacity="0">v2.077
+    <animate attributeName="opacity" values="0;0;0;0;1;1" dur="4s" repeatCount="indefinite"/>
+  </text>
+
+  <!-- Subtitle typing -->
+  <text x="400" y="128" text-anchor="middle" class="sub" id="sub-text" opacity="0">P O W E R S H E L L   C Y B E R P U N K
+    <animate attributeName="opacity" values="0;0;1;1" dur="4s" repeatCount="indefinite"/>
+  </text>
+
+  <!-- Tag line -->
+  <text x="400" y="148" text-anchor="middle" class="tag" opacity="0">[ WINDOWS TERMINAL · OH MY POSH · DASHBOARD · DOCKER ]
+    <animate attributeName="opacity" values="0;0;0;1;1" dur="4s" repeatCount="indefinite"/>
+  </text>
+
+  <!-- ── ANIMATIONS ──────────────────────────────────────── -->
+
+  <!-- Title fade in -->
+  <animate href="#main-title" attributeName="opacity"
+    values="0;0;0;1;1;1;1;1;1;1;1;1;1;0.9;1"
+    dur="4s" repeatCount="indefinite"/>
+
+  <!-- Glitch RED — random offset bursts -->
+  <animateTransform href=".glitch-r" attributeName="transform" type="translate"
+    values="0,0;-4,1;3,-1;0,0;-2,2;4,-1;0,0;0,0;0,0;0,0;0,0;-3,1;0,0"
+    dur="4s" repeatCount="indefinite"/>
+  <animate href=".glitch-r" attributeName="opacity"
+    values="0;0;0;0.6;0;0.5;0;0;0;0;0;0.4;0"
+    dur="4s" repeatCount="indefinite"/>
+
+  <!-- Glitch CYAN -->
+  <animateTransform href=".glitch-c" attributeName="transform" type="translate"
+    values="0,0;3,-1;-2,2;0,0;4,1;-3,-1;0,0;0,0;0,0;0,0;0,0;2,-1;0,0"
+    dur="4s" repeatCount="indefinite"/>
+  <animate href=".glitch-c" attributeName="opacity"
+    values="0;0;0;0.5;0;0.4;0;0;0;0;0;0.3;0"
+    dur="4s" repeatCount="indefinite"/>
+
+  <!-- Horizontal glitch bar sweep -->
+  <rect x="0" y="70" width="800" height="6" fill="#FCEE0A" opacity="0">
+    <animate attributeName="opacity" values="0;0;0;0.06;0;0;0;0;0;0" dur="4s" repeatCount="indefinite"/>
+    <animate attributeName="y" values="70;70;85;85;70;70;70;70;70;70" dur="4s" repeatCount="indefinite"/>
+  </rect>
+
+  <!-- Scanline flicker -->
+  <rect x="0" y="0" width="800" height="160" fill="#000" opacity="0">
+    <animate attributeName="opacity"
+      values="0;0;0;0;0.08;0;0;0;0.05;0"
+      dur="4s" repeatCount="indefinite"/>
+  </rect>
+
+</svg>
