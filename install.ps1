@@ -60,7 +60,7 @@ if (-not (Get-Command fzf -ErrorAction SilentlyContinue)) {
 
 # ── 5. Hook into $PROFILE ────────────────────────────────────────
 Write-Step "Setting up PowerShell profile..."
-$profileDir  = Split-Path $PROFILE
+# $profileDir  = Split-Path $PROFILE
 $profileLine = ". `"$_root\profile.ps1`""
 
 if (-not (Test-Path $PROFILE)) {
