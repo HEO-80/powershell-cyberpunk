@@ -80,10 +80,16 @@ winget install ajeetdsouza.zoxide
 winget install junegunn.fzf
 Install-Module Terminal-Icons -Scope CurrentUser
 Install-Module PSFzf -Scope CurrentUser
-oh-my-posh font install Meslo
+oh-my-posh font install IBMPlexMono
 ```
 
-2. En **Windows Terminal** (`Ctrl+,`) → *Valores predeterminados* → *Apariencia* → *Tipo de fuente*: `MesloLGM Nerd Font`. Sin esto no se ven los iconos.
+2. En **Windows Terminal** (`Ctrl+,` → *Abrir archivo JSON*), dentro de `"profiles"` → `"defaults"` (y en tu perfil "Windows PowerShell" si tiene fuente propia), pon:
+
+```json
+"font": { "face": "Cascadia Mono, BlexMono Nerd Font" }
+```
+
+   Cascadia Mono pone las letras y **BlexMono Nerd Font** (la de Takuya, instalada en el paso 1) pone los iconos. Sin una Nerd Font no se ven los iconos: salen rombos `◆`. Si prefieres una sola fuente, usa `"face": "BlexMono Nerd Font"`. El fragmento listo para copiar está en `windows_terminal_fuente.jsonc`.
 3. Clona el repo y copia el contenido en la carpeta de tu perfil (`Split-Path $PROFILE`), respetando la estructura de abajo:
 
 ```powershell
@@ -142,6 +148,7 @@ Forja y Santuario abren un archivo de plantilla en tu editor (VS Code si tienes 
 ```
 Microsoft.PowerShell_profile.ps1   ← carga el tema Cyberpunk2077
 ssh_config_beelink.txt             ← ejemplo de config SSH para `bee`
+windows_terminal_fuente.jsonc      ← fuente de Windows Terminal (Cascadia + iconos)
 Cyberpunk2077/
 ├── Cyberpunk2077.ps1              ← tema principal, dashboard, atajos y ayuda
 ├── omp_cyberpunk.json             ← tema Oh My Posh NETWATCH
@@ -224,10 +231,16 @@ winget install ajeetdsouza.zoxide
 winget install junegunn.fzf
 Install-Module Terminal-Icons -Scope CurrentUser
 Install-Module PSFzf -Scope CurrentUser
-oh-my-posh font install Meslo
+oh-my-posh font install IBMPlexMono
 ```
 
-2. In **Windows Terminal** (`Ctrl+,`) → *Defaults* → *Appearance* → *Font face*: `MesloLGM Nerd Font`. Without this, icons won't render.
+2. In **Windows Terminal** (`Ctrl+,` → *Open JSON file*), inside `"profiles"` → `"defaults"` (and in your "Windows PowerShell" profile if it has its own font), set:
+
+```json
+"font": { "face": "Cascadia Mono, BlexMono Nerd Font" }
+```
+
+   Cascadia Mono draws the letters and **BlexMono Nerd Font** (Takuya's font, installed in step 1) draws the icons. Without a Nerd Font the icons show as `◆` boxes. For a single font, use `"face": "BlexMono Nerd Font"`. A ready-to-copy snippet is in `windows_terminal_fuente.jsonc`.
 3. Clone the repo and copy its contents into your profile folder (`Split-Path $PROFILE`), keeping the structure below:
 
 ```powershell
@@ -286,6 +299,7 @@ Forja and Santuario open a template file in your editor (VS Code if `code` exist
 ```
 Microsoft.PowerShell_profile.ps1   ← loads the Cyberpunk2077 theme
 ssh_config_beelink.txt             ← sample SSH config for `bee`
+windows_terminal_fuente.jsonc      ← Windows Terminal font (Cascadia + icons)
 Cyberpunk2077/
 ├── Cyberpunk2077.ps1              ← main theme, dashboard, shortcuts and help
 ├── omp_cyberpunk.json             ← Oh My Posh NETWATCH theme
