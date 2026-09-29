@@ -243,6 +243,27 @@ oh-my-posh font install IBMPlexMono
    Cascadia Mono draws the letters and **BlexMono Nerd Font** (Takuya's font, installed in step 1) draws the icons. Without a Nerd Font the icons show as `◆` boxes. For a single font, use `"face": "BlexMono Nerd Font"`. A ready-to-copy snippet is in `windows_terminal_fuente.jsonc`.
 3. Clone the repo and copy its contents into your profile folder (`Split-Path $PROFILE`), keeping the structure below:
 
+   **Perfil completo de Windows Terminal (el que uso en casa).** Si quieres el mismo aspecto, añade este perfil dentro de `"list"` en `settings.json` y cambia las rutas por las tuyas:
+
+```json
+   {
+       "name": "Cyber PowerShell",
+       "commandline": "%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+       "font": { "face": "Hack Nerd Font", "weight": "normal" },
+       "colorScheme": "Dark+",
+       "foreground": "#0DBC79",
+       "cursorColor": "#E5E5E5",
+       "backgroundImage": "C:\\Users\\TU_USUARIO\\Pictures\\Cyberpunk\\fondo.gif",
+       "backgroundImageOpacity": 0.1,
+       "adjustIndistinguishableColors": "indexed",
+       "experimental.retroTerminalEffect": false,
+       "elevate": true,
+       "hidden": false
+   }
+```
+
+   En `"profiles"` → `"defaults"` puedes añadir `"opacity": 50` y `"useAcrylic": true` para el efecto translúcido. La fuente `Hack Nerd Font` se instala con `oh-my-posh font install Hack`. Con `Cascadia Mono, BlexMono Nerd Font` (paso anterior) también funciona.
+   
 ```powershell
 git clone https://github.com/HEO-80/powershell-cyberpunk.git
 ```
