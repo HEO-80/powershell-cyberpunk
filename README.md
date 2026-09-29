@@ -5,23 +5,24 @@
 </div>
 
 <pre>
- ██████╗██╗   ██╗██████╗ ███████╗██████╗ 
-██╔════╝╚██╗ ██╔╝██╔══██╗██╔════╝██╔══██╗
-██║      ╚████╔╝ ██████╔╝█████╗  ██████╔╝
-██║       ╚██╔╝  ██╔══██╗██╔══╝  ██╔══██╗
-╚██████╗   ██║   ██████╔╝███████╗██║  ██║
- ╚═════╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝
-   P O W E R S H E L L  ·  N E T W A T C H
+██╗  ██╗███████╗ ██████╗    ██████╗ ███████╗██╗   ██╗
+██║  ██║██╔════╝██╔═══██╗   ██╔══██╗██╔════╝██║   ██║
+███████║█████╗  ██║   ██║   ██║  ██║█████╗  ██║   ██║
+██╔══██║██╔══╝  ██║   ██║   ██║  ██║██╔══╝  ╚██╗ ██╔╝
+██║  ██║███████╗╚██████╔╝   ██████╔╝███████╗ ╚████╔╝
+╚═╝  ╚═╝╚══════╝ ╚═════╝    ╚═════╝ ╚══════╝  ╚═══╝
+   M I   T E R M I N A L   C Y B E R P O W E R S H E L L
 </pre>
 
 <img src="https://img.shields.io/badge/PowerShell-5391FE?style=for-the-badge&logo=powershell&logoColor=white"/>
 <img src="https://img.shields.io/badge/Oh_My_Posh-FCEE0A?style=for-the-badge&logoColor=black"/>
 <img src="https://img.shields.io/badge/Windows_Terminal-4D4D4D?style=for-the-badge&logo=windows-terminal&logoColor=white"/>
+<img src="https://img.shields.io/badge/WSL2-FCC624?style=for-the-badge&logo=linux&logoColor=black"/>
 <img src="https://img.shields.io/badge/Windows_11-0078D4?style=for-the-badge&logo=windows&logoColor=white"/>
 
-**Cyberpunk-themed PowerShell environment for Windows**
+**Cyberpunk-themed PowerShell environment + a built-in dojo to learn PowerShell, cmd and Linux**
 
-*Dashboard · Oh My Posh NETWATCH theme · Multi-theme switcher · Docker status · SSH shortcut*
+*Dashboard · Oh My Posh NETWATCH theme · Dojo & Tatami (commands) · Forja & Santuario (scripting) · Spaced repetition*
 
 **🌍 [English](#-english-version) · 🇪🇸 [Español](#-versión-en-español)**
 
@@ -43,47 +44,64 @@
 
 ### ✨ Qué incluye
 
-- **Dashboard al arranque** — System Info · Shortcuts · Features instalados · Docker status en tiempo real
+**Entorno**
+
+- **Dashboard al arranque** — info del sistema (con caché de 24 h), atajos, herramientas detectadas, estado de Docker y aviso de repaso pendiente
 - **Tema Oh My Posh `NETWATCH`** — prompt con rama git, ruta, usuario y tiempo de ejecución
-- **Paleta de colores global** — cambia todo el tema editando 6 variables hex
-- **Sistema de temas** — `Set-Theme cyberpunk` o `Set-Theme default` en caliente
-- **`Write-Cyber`** — helper ANSI para escribir con cualquier color hex en PowerShell
-- **Comando `bee`** — conexión SSH inteligente con detección online/offline
-- **`help-ps`** — ayuda completa con herramientas, atajos y funciones
-- **Instalador automático** — `install.ps1` configura todo desde cero
+- **Paleta global** — cambia todo el tema editando 6 variables hex en `$global:CY`
+- **`Write-Cyber`** — helper para escribir con cualquier color hex
+- **zoxide** (`z`, `zi`), **fzf + PSFzf** (`Ctrl+T`, `Ctrl+R`), **Terminal-Icons** y **PSReadLine** con predicción del historial
+- **`bee`** — SSH al Beelink leyendo host, usuario y puerto de `~/.ssh/config`, con comprobación de puerto antes de conectar
+- **Funciones de administración** — `top-size`, `top-cpu`, `matar` (con confirmación), `puertos`, `clean-logs -WhatIf`
+- **`help-ps`** y **`Measure-Profile`** — ayuda completa y medidor del tiempo de arranque
+
+**Zona de entrenamiento** (para mejorar en PowerShell, cmd y Linux)
+
+| Comando | Qué hace |
+|---|---|
+| `dojo` / `dojo2` | Preguntas sobre nombres de comandos (nivel 1) y comandos completos (nivel 2), en Linux, PowerShell y cmd |
+| `rosetta` | Tabla de equivalencias Linux / PowerShell / cmd |
+| `tatami` / `tatami2` | Misiones prácticas en una carpeta temporal: tú escribes el comando y se comprueba el resultado real |
+| `forja` | Aprende a **escribir scripts de PowerShell**: 13 misiones con tests automáticos |
+| `santuario` | Lo mismo en **bash**, lanzado desde PowerShell y ejecutado en **WSL2** (13 misiones) |
+| `progreso` | Tu estado: dominados, pendientes de repaso y lo que más fallas |
+
+Todo comparte un **sistema de repaso espaciado (Leitner)**: los fallos se guardan y vuelven a salir a los 0/1/3/7/21 días según la caja, con `-Repaso` para ver solo lo pendiente. Compatible con Windows PowerShell 5.1 y PowerShell 7.
 
 ---
 
-### 🚀 Instalación rápida
+### 🚀 Instalación
+
+1. Instala las herramientas (una sola vez):
 
 ```powershell
-# 1. Clona el repo
+winget install JanDeDobbeleer.OhMyPosh
+winget install ajeetdsouza.zoxide
+winget install junegunn.fzf
+Install-Module Terminal-Icons -Scope CurrentUser
+Install-Module PSFzf -Scope CurrentUser
+oh-my-posh font install Meslo
+```
+
+2. En **Windows Terminal** (`Ctrl+,`) → *Valores predeterminados* → *Apariencia* → *Tipo de fuente*: `MesloLGM Nerd Font`. Sin esto no se ven los iconos.
+3. Clona el repo y copia el contenido en la carpeta de tu perfil (`Split-Path $PROFILE`), respetando la estructura de abajo:
+
+```powershell
 git clone https://github.com/HEO-80/powershell-cyberpunk.git
-cd powershell-cyberpunk
-
-# 2. Ejecuta el instalador (requiere permisos de administrador)
-.\install.ps1
-
-# 3. Reinicia PowerShell
 ```
 
-El instalador instala automáticamente: Oh My Posh · Terminal-Icons · PSReadLine · z · PSFzf · fzf
+4. Si Windows bloquea los scripts descargados: `Get-ChildItem (Split-Path $PROFILE) -Recurse -Filter *.ps1 | Unblock-File`
+5. Para `bee`, copia `ssh_config_beelink.txt` al final de `~\.ssh\config` (ajusta IP, usuario y puerto).
+6. Para Santuario necesitas WSL con una distro de Linux: `wsl --install -d Ubuntu`. Comprueba con `santuario -Diagnostico`.
+7. Abre una terminal nueva.
 
----
-
-### ⚙️ Instalación manual
-
-Si prefieres instalar manualmente, añade esta línea a tu `$PROFILE`:
-
-```powershell
-. "C:\ruta\a\powershell-cyberpunk\profile.ps1"
-```
+> Los `.ps1` deben ir en **UTF-8 con BOM** para que Windows PowerShell 5.1 lea bien las tildes.
 
 ---
 
 ### 🎨 Cambiar colores
 
-Edita la paleta en `themes/Cyberpunk2077.ps1`:
+Edita la paleta en `Cyberpunk2077/Cyberpunk2077.ps1`:
 
 ```powershell
 $global:CY = @{
@@ -96,49 +114,45 @@ $global:CY = @{
 }
 ```
 
+El prompt se personaliza en `Cyberpunk2077/omp_cyberpunk.json`. El banner ASCII se apaga con `$global:ShowBanner = $false` en el perfil.
+
 ---
 
-### 🖥️ Cambiar tema en caliente
+### 🥋 Cómo se entrena
 
 ```powershell
-Set-Theme cyberpunk   # tema NETWATCH completo con dashboard
-Set-Theme default     # tema limpio sin dashboard
+dojo -Modo Linux -Preguntas 5   # preguntas rápidas
+tatami2                         # misión práctica
+forja                           # escribe una función en PowerShell; Enter = probar
+santuario                       # escribe una función en bash; se prueba en WSL
+dojo -Repaso                    # solo lo que toca repasar hoy
+progreso                        # tu estado
 ```
 
-O establece el tema por defecto via variable de entorno en Windows Terminal:
-```json
-"environmentVariables": { "CYBER_THEME": "default" }
-```
+Forja y Santuario abren un archivo de plantilla en tu editor (VS Code si tienes `code`, si no el Bloc de notas, o el que definas en `$env:FORJA_EDITOR`). Escribes la solución, guardas y pulsas Enter: se ejecuta contra varios casos de prueba y te dice cuáles fallan. Dentro de una misión: `pista`, `ver`, `editar`, `plantilla`, `solucion`, `salir`.
 
----
-
-### 🔌 Configurar SSH (comando `bee`)
-
-Añade estas variables de entorno en Windows Terminal o en tu sistema:
-
-```json
-"environmentVariables": {
-    "CYBER_SSH_HOST": "192.168.1.x",
-    "CYBER_SSH_USER": "tu-usuario",
-    "CYBER_SSH_PORT": "22"
-}
-```
-
-Luego ejecuta `bee` en la terminal para conectar.
+| Caja | 1 | 2 | 3 | 4 | 5 |
+|---|---|---|---|---|---|
+| Vuelve a salir | próximo repaso | 1 día | 3 días | 7 días | 21 días |
 
 ---
 
 ### 🗂️ Estructura
 
 ```
-powershell-cyberpunk/
-├── themes/
-│   ├── Cyberpunk2077.ps1   ← tema principal con dashboard
-│   └── omp_cyberpunk.json  ← tema Oh My Posh NETWATCH
-├── profile.ps1             ← orquestador con Set-Theme
-├── install.ps1             ← instalador automático
-└── README.md
+Microsoft.PowerShell_profile.ps1   ← carga el tema Cyberpunk2077
+ssh_config_beelink.txt             ← ejemplo de config SSH para `bee`
+Cyberpunk2077/
+├── Cyberpunk2077.ps1              ← tema principal, dashboard, atajos y ayuda
+├── omp_cyberpunk.json             ← tema Oh My Posh NETWATCH
+├── Motor.ps1                      ← repaso espaciado + motores de dojo y tatami
+├── Dojo.ps1 · Dojo2.ps1           ← preguntas nivel 1 y 2
+├── Tatami1.ps1 · Tatami2.ps1      ← misiones prácticas nivel 1 y 2
+├── Forja.ps1                      ← aprende a escribir scripts (PowerShell)
+└── Santuario.ps1                  ← aprende a escribir scripts (bash en WSL)
 ```
+
+Tu progreso se guarda en `%LOCALAPPDATA%\CyberProfile\` (fuera del repo).
 
 ---
 
@@ -147,13 +161,15 @@ powershell-cyberpunk/
 - [x] Dashboard con System Info + Docker status
 - [x] Tema Oh My Posh NETWATCH
 - [x] Paleta de colores configurable
-- [x] Sistema de temas intercambiables
-- [x] Helper `Write-Cyber` para colores ANSI hex
-- [x] Instalador automático
+- [x] zoxide, fzf y Terminal-Icons integrados
+- [x] Dojo y Tatami (niveles 1 y 2)
+- [x] Repaso espaciado de fallos
+- [x] Forja: scripting en PowerShell
+- [x] Santuario: scripting en bash vía WSL
+- [ ] Instalador automático (`install.ps1`) actualizado a esta estructura
+- [ ] Lista de "Features instalados" dinámica en el dashboard
+- [ ] Nivel 3 de misiones (funciones avanzadas, módulos, Git)
 - [ ] Tema para Linux/WSL (Fish + Bash)
-- [ ] Soporte para Nerd Fonts automático
-- [ ] Módulo de Git stats en el dashboard
-- [ ] Integración con Starship como alternativa a Oh My Posh
 
 ---
 
@@ -172,47 +188,64 @@ powershell-cyberpunk/
 
 ### ✨ What's included
 
-- **Startup dashboard** — System Info · Shortcuts · Installed features · Live Docker status
+**Environment**
+
+- **Startup dashboard** — system info (24 h cache), shortcuts, detected tools, Docker status and pending-review reminder
 - **Oh My Posh `NETWATCH` theme** — prompt with git branch, path, user and execution time
-- **Global color palette** — change the entire theme by editing 6 hex variables
-- **Theme switcher** — `Set-Theme cyberpunk` or `Set-Theme default` at runtime
-- **`Write-Cyber`** — ANSI helper to write any hex color in PowerShell
-- **`bee` command** — smart SSH with online/offline host detection
-- **`help-ps`** — full help with tools, shortcuts and functions
-- **Auto installer** — `install.ps1` sets everything up from scratch
+- **Global palette** — change the whole theme by editing 6 hex variables in `$global:CY`
+- **`Write-Cyber`** — helper to write any hex color
+- **zoxide** (`z`, `zi`), **fzf + PSFzf** (`Ctrl+T`, `Ctrl+R`), **Terminal-Icons** and **PSReadLine** history prediction
+- **`bee`** — SSH to the Beelink, reading host, user and port from `~/.ssh/config`, with a port check before connecting
+- **Admin helpers** — `top-size`, `top-cpu`, `matar` (with confirmation), `puertos`, `clean-logs -WhatIf`
+- **`help-ps`** and **`Measure-Profile`** — full help and startup timer
+
+**Training area** (to get better at PowerShell, cmd and Linux)
+
+| Command | What it does |
+|---|---|
+| `dojo` / `dojo2` | Quiz on command names (level 1) and full commands (level 2), for Linux, PowerShell and cmd |
+| `rosetta` | Linux / PowerShell / cmd equivalence table |
+| `tatami` / `tatami2` | Hands-on missions in a temp folder: you type the command and the real result is checked |
+| `forja` | Learn to **write PowerShell scripts**: 13 missions with automatic tests |
+| `santuario` | Same for **bash**, launched from PowerShell and run in **WSL2** (13 missions) |
+| `progreso` | Your status: mastered, due for review, most failed |
+
+Everything shares a **spaced-repetition (Leitner) system**: failures are saved and come back after 0/1/3/7/21 days depending on the box; use `-Repaso` to see only what's due. Works on Windows PowerShell 5.1 and PowerShell 7.
 
 ---
 
-### 🚀 Quick install
+### 🚀 Install
+
+1. Install the tools (once):
 
 ```powershell
-# 1. Clone the repo
+winget install JanDeDobbeleer.OhMyPosh
+winget install ajeetdsouza.zoxide
+winget install junegunn.fzf
+Install-Module Terminal-Icons -Scope CurrentUser
+Install-Module PSFzf -Scope CurrentUser
+oh-my-posh font install Meslo
+```
+
+2. In **Windows Terminal** (`Ctrl+,`) → *Defaults* → *Appearance* → *Font face*: `MesloLGM Nerd Font`. Without this, icons won't render.
+3. Clone the repo and copy its contents into your profile folder (`Split-Path $PROFILE`), keeping the structure below:
+
+```powershell
 git clone https://github.com/HEO-80/powershell-cyberpunk.git
-cd powershell-cyberpunk
-
-# 2. Run the installer (requires admin privileges)
-.\install.ps1
-
-# 3. Restart PowerShell
 ```
 
-The installer automatically sets up: Oh My Posh · Terminal-Icons · PSReadLine · z · PSFzf · fzf
+4. If Windows blocks downloaded scripts: `Get-ChildItem (Split-Path $PROFILE) -Recurse -Filter *.ps1 | Unblock-File`
+5. For `bee`, append `ssh_config_beelink.txt` to `~\.ssh\config` (adjust IP, user and port).
+6. Santuario needs WSL with a Linux distro: `wsl --install -d Ubuntu`. Check with `santuario -Diagnostico`.
+7. Open a new terminal.
 
----
-
-### ⚙️ Manual install
-
-If you prefer manual setup, add this line to your `$PROFILE`:
-
-```powershell
-. "C:\path\to\powershell-cyberpunk\profile.ps1"
-```
+> `.ps1` files must be saved as **UTF-8 with BOM** so Windows PowerShell 5.1 reads accents correctly.
 
 ---
 
 ### 🎨 Changing colors
 
-Edit the palette in `themes/Cyberpunk2077.ps1`:
+Edit the palette in `Cyberpunk2077/Cyberpunk2077.ps1`:
 
 ```powershell
 $global:CY = @{
@@ -225,49 +258,45 @@ $global:CY = @{
 }
 ```
 
+The prompt lives in `Cyberpunk2077/omp_cyberpunk.json`. Turn the ASCII banner off with `$global:ShowBanner = $false` in the profile.
+
 ---
 
-### 🖥️ Switching themes at runtime
+### 🥋 How to train
 
 ```powershell
-Set-Theme cyberpunk   # full NETWATCH theme with dashboard
-Set-Theme default     # clean theme without dashboard
+dojo -Modo Linux -Preguntas 5   # quick questions
+tatami2                         # hands-on mission
+forja                           # write a PowerShell function; Enter = run tests
+santuario                       # write a bash function; tested in WSL
+dojo -Repaso                    # only what's due today
+progreso                        # your status
 ```
 
-Or set the default theme via environment variable in Windows Terminal:
-```json
-"environmentVariables": { "CYBER_THEME": "default" }
-```
+Forja and Santuario open a template file in your editor (VS Code if `code` exists, otherwise Notepad, or whatever you set in `$env:FORJA_EDITOR`). Write the solution, save, press Enter: it runs against several test cases and shows which ones fail. Inside a mission: `pista` (hint), `ver`, `editar`, `plantilla`, `solucion`, `salir`.
 
----
-
-### 🔌 SSH shortcut (`bee` command)
-
-Add these environment variables in Windows Terminal or system settings:
-
-```json
-"environmentVariables": {
-    "CYBER_SSH_HOST": "192.168.1.x",
-    "CYBER_SSH_USER": "your-username",
-    "CYBER_SSH_PORT": "22"
-}
-```
-
-Then run `bee` in the terminal to connect.
+| Box | 1 | 2 | 3 | 4 | 5 |
+|---|---|---|---|---|---|
+| Comes back | next review | 1 day | 3 days | 7 days | 21 days |
 
 ---
 
 ### 🗂️ Structure
 
 ```
-powershell-cyberpunk/
-├── themes/
-│   ├── Cyberpunk2077.ps1   ← main theme with dashboard
-│   └── omp_cyberpunk.json  ← Oh My Posh NETWATCH theme
-├── profile.ps1             ← orchestrator with Set-Theme
-├── install.ps1             ← auto installer
-└── README.md
+Microsoft.PowerShell_profile.ps1   ← loads the Cyberpunk2077 theme
+ssh_config_beelink.txt             ← sample SSH config for `bee`
+Cyberpunk2077/
+├── Cyberpunk2077.ps1              ← main theme, dashboard, shortcuts and help
+├── omp_cyberpunk.json             ← Oh My Posh NETWATCH theme
+├── Motor.ps1                      ← spaced repetition + dojo/tatami engines
+├── Dojo.ps1 · Dojo2.ps1           ← level 1 and 2 quizzes
+├── Tatami1.ps1 · Tatami2.ps1      ← level 1 and 2 hands-on missions
+├── Forja.ps1                      ← learn to write scripts (PowerShell)
+└── Santuario.ps1                  ← learn to write scripts (bash in WSL)
 ```
+
+Your progress is stored in `%LOCALAPPDATA%\CyberProfile\` (outside the repo).
 
 ---
 
@@ -275,14 +304,16 @@ powershell-cyberpunk/
 
 - [x] Dashboard with System Info + Docker status
 - [x] Oh My Posh NETWATCH theme
-- [x] Configurable color palette
-- [x] Switchable theme system
-- [x] `Write-Cyber` ANSI hex color helper
-- [x] Auto installer
+- [x] Configurable palette
+- [x] zoxide, fzf and Terminal-Icons integrated
+- [x] Dojo and Tatami (levels 1 and 2)
+- [x] Spaced repetition of failures
+- [x] Forja: PowerShell scripting
+- [x] Santuario: bash scripting via WSL
+- [ ] Automatic installer (`install.ps1`) updated to this structure
+- [ ] Dynamic "Installed features" list in the dashboard
+- [ ] Level 3 missions (advanced functions, modules, Git)
 - [ ] Linux/WSL theme (Fish + Bash)
-- [ ] Automatic Nerd Fonts support
-- [ ] Git stats module in dashboard
-- [ ] Starship integration as Oh My Posh alternative
 
 ---
 
