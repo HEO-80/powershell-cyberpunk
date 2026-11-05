@@ -139,7 +139,8 @@ powershell-cyberpunk/
 │   └── omp_cyberpunk.json   # Oh My Posh prompt theme
 ├── extras/
 │   ├── Install-AI.ps1       # Optional: install AI assistants (Opencode, Claude, Copilot)
-│   └── FileTools.ps1        # Optional: file utility functions (info, hash, buscar...)
+│   ├── FileTools.ps1        # Optional: file utility functions (info, hash, buscar...)
+│   └── PSRemoting.ps1       # Optional: remote admin (run commands on multiple machines)
 └── training/
     ├── Motor.ps1            # Leitner spaced repetition engine
     ├── Dojo.ps1             # Rosetta quiz: Linux / PowerShell / CMD
@@ -192,6 +193,29 @@ irm https://raw.githubusercontent.com/HEO-80/powershell-cyberpunk/main/extras/Fi
 | `comparar <A> <B>` | Compare two folders: what's in one but not the other |
 
 > **Tip:** drag a file onto the terminal window to paste its full path — works with all these commands.
+
+### 🖥 PSRemoting — Remote administration
+
+Manage multiple Windows machines from your terminal:
+
+```powershell
+irm https://raw.githubusercontent.com/HEO-80/powershell-cyberpunk/main/extras/PSRemoting.ps1 | iex
+```
+
+| Command | What it does |
+|---|---|
+| `maquinas` | List / add / remove saved machines |
+| `ping-remoto <machines>` | Check status (ping + WinRM) |
+| `remoto <machines> { cmd }` | Run a command on multiple machines in parallel |
+| `ir <machine>` | Interactive session (like SSH) |
+| `disco-remoto <machines>` | Disk space on remote machines |
+| `servicios-remoto <m> svc1,svc2` | Check service status remotely |
+| `reiniciar-servicio <m> svc` | Restart a service remotely |
+| `info-remoto <machines>` | System info: OS, CPU, RAM, uptime, IP |
+| `copiar-remoto -A <m> ...` | Copy files to/from remote machines |
+| `activar-winrm` | Enable WinRM locally + configure TrustedHosts |
+
+> Use `todas` as the machine name to run on all saved machines at once. Add `-Credencial` to any command to enter credentials.
 
 ---
 
