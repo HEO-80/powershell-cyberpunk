@@ -140,7 +140,8 @@ powershell-cyberpunk/
 ├── extras/
 │   ├── Install-AI.ps1       # Optional: install AI assistants (Opencode, Claude, Copilot)
 │   ├── FileTools.ps1        # Optional: file utility functions (info, hash, buscar...)
-│   └── PSRemoting.ps1       # Optional: remote admin (run commands on multiple machines)
+│   ├── PSRemoting.ps1       # Optional: remote admin (run commands on multiple machines)
+│   └── EventMonitor.ps1     # Optional: Windows event log monitor (logins, errors, crashes)
 └── training/
     ├── Motor.ps1            # Leitner spaced repetition engine
     ├── Dojo.ps1             # Rosetta quiz: Linux / PowerShell / CMD
@@ -216,6 +217,25 @@ irm https://raw.githubusercontent.com/HEO-80/powershell-cyberpunk/main/extras/PS
 | `activar-winrm` | Enable WinRM locally + configure TrustedHosts |
 
 > Use `todas` as the machine name to run on all saved machines at once. Add `-Credencial` to any command to enter credentials.
+
+### 📊 EventMonitor — Windows event log monitor
+
+Keep an eye on what's happening across your systems:
+
+```powershell
+irm https://raw.githubusercontent.com/HEO-80/powershell-cyberpunk/main/extras/EventMonitor.ps1 | iex
+```
+
+| Command | What it does |
+|---|---|
+| `vigilar [-Horas 24]` | Full summary: errors, failed logins, stopped services, reboots, new services |
+| `logins [-Solo Fallidos]` | Login attempts with user, IP, method (filter by `-Usuario`) |
+| `errores [-Log System]` | Critical errors from any log |
+| `buscar-evento <ID>` | Search by Event ID or `-Texto` in message |
+| `exportar-eventos` | Export errors & warnings to CSV on your desktop |
+| `ids` | Quick reference of important Event IDs for sysadmins |
+
+> Run as Administrator to read Security logs. Combine with PSRemoting: `remoto Servidor01 { vigilar -Horas 4 }`
 
 ---
 
