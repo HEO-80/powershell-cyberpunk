@@ -137,6 +137,9 @@ powershell-cyberpunk/
 ├── themes/
 │   ├── Cyberpunk2077.ps1    # Theme: colors, dashboard, functions, training loader
 │   └── omp_cyberpunk.json   # Oh My Posh prompt theme
+├── extras/
+│   ├── Install-AI.ps1       # Optional: install AI assistants (Opencode, Claude, Copilot)
+│   └── FileTools.ps1        # Optional: file utility functions (info, hash, buscar...)
 └── training/
     ├── Motor.ps1            # Leitner spaced repetition engine
     ├── Dojo.ps1             # Rosetta quiz: Linux / PowerShell / CMD
@@ -153,6 +156,42 @@ powershell-cyberpunk/
 - **Windows Terminal** (recommended for full color support)
 - **Git** (for installation)
 - **WSL** (only needed for Santuario — bash training)
+
+---
+
+## Extras (optional add-ons)
+
+Independent scripts you can install separately — they don't require the full theme.
+
+### 🤖 Install-AI — AI assistant installer
+
+Install Opencode (Gemini), Claude Code, or GitHub Copilot CLI with one command:
+
+```powershell
+irm https://raw.githubusercontent.com/HEO-80/powershell-cyberpunk/main/extras/Install-AI.ps1 | iex
+```
+
+Interactive menu that installs the tool, opens the browser for API keys, and saves credentials as environment variables.
+
+### 📁 FileTools — File utility functions
+
+Load handy file functions into your terminal:
+
+```powershell
+irm https://raw.githubusercontent.com/HEO-80/powershell-cyberpunk/main/extras/FileTools.ps1 | iex
+```
+
+| Command | What it does |
+|---|---|
+| `info <path>` | Full info about a file or folder (size, extensions, top-5 heaviest) |
+| `hash <path>` | SHA-256 hash (also MD5, SHA1, SHA512) |
+| `peso [path]` | Which subfolders use the most space |
+| `buscar <text>` | Find files by name (with `-Ext` filter) |
+| `duplicados` | Find duplicate files by hash |
+| `renombrar` | Batch rename: `-Prefijo`, `-Reemplazar`, `-Extension`, `-Numerar` (`-WhatIf` to preview) |
+| `comparar <A> <B>` | Compare two folders: what's in one but not the other |
+
+> **Tip:** drag a file onto the terminal window to paste its full path — works with all these commands.
 
 ---
 
