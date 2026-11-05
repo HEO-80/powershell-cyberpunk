@@ -43,9 +43,11 @@ $batPath = Join-Path $desktop "CyberAnalizar.bat"
 $fileToolsPath = $null
 $posibles = @(
     (Join-Path $HOME ".powershell-cyberpunk\extras\FileTools.ps1"),
-    (Join-Path $HOME ".my-Heo-Terminal\extras\FileTools.ps1"),
-    (Join-Path $PSScriptRoot "FileTools.ps1")
+    (Join-Path $HOME ".my-Heo-Terminal\extras\FileTools.ps1")
 )
+if ($PSScriptRoot) {
+    $posibles += (Join-Path $PSScriptRoot "FileTools.ps1")
+}
 foreach ($p in $posibles) {
     if (Test-Path $p) { $fileToolsPath = $p; break }
 }
