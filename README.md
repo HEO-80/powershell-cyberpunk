@@ -141,7 +141,8 @@ powershell-cyberpunk/
 │   ├── Install-AI.ps1       # Optional: install AI assistants (Opencode, Claude, Copilot)
 │   ├── FileTools.ps1        # Optional: file utility functions (info, hash, buscar...)
 │   ├── PSRemoting.ps1       # Optional: remote admin (run commands on multiple machines)
-│   └── EventMonitor.ps1     # Optional: Windows event log monitor (logins, errors, crashes)
+│   ├── EventMonitor.ps1     # Optional: Windows event log monitor (logins, errors, crashes)
+│   └── Install-DragDrop.ps1 # Optional: drag & drop + right-click integration with Explorer
 └── training/
     ├── Motor.ps1            # Leitner spaced repetition engine
     ├── Dojo.ps1             # Rosetta quiz: Linux / PowerShell / CMD
@@ -236,6 +237,22 @@ irm https://raw.githubusercontent.com/HEO-80/powershell-cyberpunk/main/extras/Ev
 | `ids` | Quick reference of important Event IDs for sysadmins |
 
 > Run as Administrator to read Security logs. Combine with PSRemoting: `remoto Servidor01 { vigilar -Horas 4 }`
+
+### 🖱 Install-DragDrop — Explorer integration
+
+Make your terminal receive files from anywhere:
+
+```powershell
+irm https://raw.githubusercontent.com/HEO-80/powershell-cyberpunk/main/extras/Install-DragDrop.ps1 | iex
+```
+
+Installs three ways to analyze files instantly:
+
+1. **Drag & drop** — drag files onto `CyberAnalizar.bat` on your Desktop
+2. **Right-click** — "Analizar con CyberTools" in Explorer's context menu (needs Admin)
+3. **Terminal** — `recibir file1.pdf file2.docx` (accepts multiple paths)
+
+> Uses FileTools functions (info + hash). Run `Uninstall-CyberToolsMenu` as Admin to remove the context menu.
 
 ---
 
