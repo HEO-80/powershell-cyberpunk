@@ -3,6 +3,7 @@
 #          Cyberpunk-themed PowerShell environment                  #
 #          github.com/HEO-80/powershell-cyberpunk                   #
 # ================================================================= #
+# IMPORTANTE: guardar como UTF-8 con BOM (o usar PowerShell 7).
 
 Clear-Host
 
@@ -36,132 +37,257 @@ $global:CY = @{
 # ================================================================= #
 #                        MODULES                                    #
 # ================================================================= #
-$_mods = @("Terminal-Icons", "PSReadLine", "z")
-foreach ($_m in $_mods) {
-    if (Get-Module -ListAvailable -Name $_m -ErrorAction SilentlyContinue) {
-        Import-Module $_m -ErrorAction SilentlyContinue
+function Import-ModuleSafe {
+    param([string]$Name)
+    try {
+        Import-Module $Name -ErrorAction Stop
+        return $true
+    } catch {
+        Write-Cyber "  [!] Missing module '$Name'  ->  Install-Module $Name -Scope CurrentUser" $global:CY.Dim
+        return $false
     }
 }
 
-# PSFzf — load only if fzf binary is present
-$_fzf = (Get-Command fzf -ErrorAction SilentlyContinue)
-if (-not $_fzf) {
-    # fallback: try WinGet packages folder
-    $_fzf = (Get-ChildItem "$env:LocalAppData\Microsoft\WinGet\Packages\junegunn.fzf*\fzf.exe" -ErrorAction SilentlyContinue)
-    if ($_fzf) { $env:PATH += ";$($_fzf.DirectoryName)" }
-}
-if (Get-Command fzf -ErrorAction SilentlyContinue) {
-    if (Get-Module -ListAvailable -Name PSFzf -ErrorAction SilentlyContinue) {
-        Import-Module PSFzf
-        Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+t' -PSReadlineChordReverseHistory 'Ctrl+r'
-    }
+$null = Import-ModuleSafe "Terminal-Icons"
+
+# zoxide
+if (Get-Command zoxide -ErrorAction SilentlyContinue) {
+    Invoke-Expression (& { (zoxide init powershell | Out-String) })
+} else {
+    Write-Cyber "  [!] zoxide not installed  ->  winget install ajeetdsouza.zoxide" $global:CY.Dim
 }
 
-Set-PSReadLineOption -PredictionSource History
-Set-PSReadLineOption -PredictionViewStyle InlineView
+# fzf + PSFzf
+if (-not (Get-Command fzf -ErrorAction SilentlyContinue)) {
+    $fzfPath = Get-ChildItem "$env:LocalAppData\Microsoft\WinGet\Packages\junegunn.fzf*\fzf.exe" -ErrorAction SilentlyContinue |
+        Select-Object -First 1 -ExpandProperty DirectoryName
+    if ($fzfPath) { $env:PATH += ";$fzfPath" }
+}
+
+# ── PSReadLine ────────────────────────────────────────────────────
+try { Set-PSReadLineOption -PredictionSource History } catch {}
+try { Set-PSReadLineOption -PredictionViewStyle InlineView } catch {}
+Set-PSReadLineOption -HistoryNoDuplicates
+Set-PSReadLineOption -BellStyle None
+
+Set-PSReadLineKeyHandler -Key UpArrow   -Function HistorySearchBackward
+Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
+Set-PSReadLineKeyHandler -Key Tab       -Function MenuComplete
+Set-PSReadLineKeyHandler -Key Ctrl+a    -Function BeginningOfLine
+Set-PSReadLineKeyHandler -Key Ctrl+e    -Function EndOfLine
+Set-PSReadLineKeyHandler -Key Alt+d     -Function KillWord
+Set-PSReadLineKeyHandler -Key Ctrl+w    -Function BackwardKillWord
+Set-PSReadLineKeyHandler -Key Ctrl+l    -Function ClearScreen
+
+if ((Get-Command fzf -ErrorAction SilentlyContinue) -and (Import-ModuleSafe "PSFzf")) {
+    Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+t' -PSReadlineChordReverseHistory 'Ctrl+r'
+}
 
 # ================================================================= #
 #                        OH MY POSH                                 #
 # ================================================================= #
-$_ompExe = (Get-Command oh-my-posh -ErrorAction SilentlyContinue)?.Source
-if (-not $_ompExe) {
-    $_ompExe = "$env:LOCALAPPDATA\Microsoft\WindowsApps\oh-my-posh.exe"
-}
-$_ompTheme = Join-Path $PSScriptRoot "omp_cyberpunk.json"
-
-if ((Test-Path $_ompExe) -and (Test-Path $_ompTheme)) {
-    & $_ompExe init pwsh --config $_ompTheme | Invoke-Expression
+if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) {
+    oh-my-posh init pwsh --config (Join-Path $PSScriptRoot "omp_cyberpunk.json") | Invoke-Expression
 } else {
-    Write-Cyber "  [WARN] Oh My Posh or theme not found. Run install.ps1 first." $global:CY.Magenta
+    Write-Cyber "  [!] oh-my-posh not installed  ->  winget install JanDeDobbeleer.OhMyPosh" $global:CY.Dim
 }
 
 # ================================================================= #
-#                    PERSONAL SHORTCUTS                             #
-#     Edit this section to add your own aliases and functions       #
+#                 ERGONOMIC FUNCTIONS                               #
 # ================================================================= #
 
-# --- Quick launchers (customize these) ---
-# function n    { start https://www.notion.so/ }
-# function o    { start obsidian:// }
-# function g    { start https://mail.google.com }
-# function vsc  { code . }
+# Top files by size in the current folder
+function top-size ($count = 10) {
+    Get-ChildItem -File -ErrorAction SilentlyContinue |
+        Sort-Object Length -Descending |
+        Select-Object -First $count Name, @{N="Size (MB)"; E={[math]::Round($_.Length / 1MB, 2)}}
+}
 
-# --- SSH server shortcut ---
-# Usage: bee   →  connects to your home server via SSH
-# Edit $ServerIP and $User below to match your setup
-function Invoke-ServerSSH {
-    $ServerIP = $env:CYBER_SSH_HOST   # set via $env or edit directly
-    $User     = $env:CYBER_SSH_USER
-    $Port     = if ($env:CYBER_SSH_PORT) { $env:CYBER_SSH_PORT } else { "22" }
+# Top processes by CPU
+function top-cpu ($count = 5) {
+    Get-Process |
+        Sort-Object CPU -Descending |
+        Select-Object -First $count ProcessName, @{N="CPU (s)"; E={[math]::Round($_.CPU, 1)}}, @{N="RAM (MB)"; E={[math]::Round($_.WorkingSet64 / 1MB, 1)}}
+}
 
-    if (-not $ServerIP -or -not $User) {
-        Write-Cyber "  Set CYBER_SSH_HOST and CYBER_SSH_USER env vars, or edit profile.ps1" $global:CY.Magenta
+# Kill a process by name (min 3 chars, asks confirmation)
+function matar {
+    param(
+        [Parameter(Mandatory)]
+        [ValidateLength(3,50)]
+        [string]$Name
+    )
+    $procs = @(Get-Process -Name "*$Name*" -ErrorAction SilentlyContinue)
+    if ($procs.Count -eq 0) {
+        Write-Cyber "No matches for '*$Name*'." $global:CY.Dim
         return
     }
+    $procs |
+        Stop-Process -Confirm -PassThru |
+        ForEach-Object { Write-Cyber "Stopped: $($_.ProcessName) (PID: $($_.Id))" $global:CY.Green }
+}
 
-    Write-Cyber "  Scanning for $ServerIP ..." $global:CY.Yellow -NoNewline
-    if (Test-Connection -ComputerName $ServerIP -Count 1 -Quiet) {
-        Write-Cyber " [ONLINE]" $global:CY.Green
-        ssh "$User@$ServerIP" -p $Port
-    } else {
-        Write-Cyber " [OFFLINE]" "#FF3030"
+# Listening ports with process names
+function puertos {
+    Get-NetTCPConnection -State Listen |
+        Select-Object LocalAddress, LocalPort, OwningProcess,
+            @{N="Process"; E={ (Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue).ProcessName }} |
+        Sort-Object LocalPort
+}
+
+# Clean .log/.tmp files — test with: clean-logs -WhatIf
+function clean-logs {
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
+    param()
+    Get-ChildItem -Include *.log, *.tmp -Recurse -File -ErrorAction SilentlyContinue |
+        Remove-Item -Force -Verbose
+}
+
+# ================================================================= #
+#                     LOAD TRAINING MODULES                        #
+# ================================================================= #
+# Training files live in ../training/ relative to this theme file
+$_trainingDir = Join-Path (Split-Path $PSScriptRoot) "training"
+if (Test-Path $_trainingDir) {
+    # Motor.ps1 first (provides the Leitner engine for all training)
+    foreach ($f in "Motor.ps1", "Dojo.ps1", "Dojo2.ps1", "Tatami1.ps1", "Tatami2.ps1", "Forja.ps1", "Santuario.ps1") {
+        $ruta = Join-Path $_trainingDir $f
+        if (Test-Path $ruta) { . $ruta }
     }
 }
-Set-Alias bee Invoke-ServerSSH
 
 # ================================================================= #
-#                          DASHBOARD                                #
+#                  DATA (dashboard + help)                         #
 # ================================================================= #
+
+$global:Shortcuts = @(
+    @{ Label = "top-size [n]";      Value = "Biggest files in current folder" }
+    @{ Label = "top-cpu [n]";       Value = "Top CPU-consuming processes" }
+    @{ Label = "matar <name>";      Value = "Kill process by name (with confirm)" }
+    @{ Label = "puertos";           Value = "Listening ports with process names" }
+    @{ Label = "clean-logs";        Value = "Remove .log/.tmp recursively" }
+    @{ Label = "help-ps";           Value = "Show all commands and keys" }
+)
+
+$global:HelpData = [ordered]@{
+    "NAVIGATION (NO MOUSE)" = @(
+        @{ K = "Shift + PgUp / PgDn";       D = "Scroll up/down in Windows Terminal" }
+        @{ K = "Ctrl + Shift + Up/Down";     D = "Scroll line by line" }
+        @{ K = "ls | more";                  D = "Paginate long output (Space advances, Q quits)" }
+        @{ K = "cd -";                       D = "Go back to previous directory (PowerShell 7 only)" }
+        @{ K = "z <name>";                   D = "zoxide: jump to frequently visited folders (zi = interactive)" }
+    )
+    "INSTALLED TOOLS" = @(
+        @{ K = "Terminal-Icons"; D = "ls / dir  ->  icons next to files and folders" }
+        @{ K = "fzf (PSFzf)";   D = "Fuzzy file/history search (see Ctrl+T / Ctrl+R)" }
+        @{ K = "PSReadLine";    D = "Grey inline predictions from history (right arrow accepts)" }
+        @{ K = "zoxide";        D = "z folder_name  ->  jump to visited folders" }
+        @{ K = "Oh My Posh";    D = "Prompt with git branch, path and colors (automatic)" }
+    )
+    "KEYBOARD SHORTCUTS" = @(
+        @{ K = "Tab";                    D = "Navigable autocomplete menu" }
+        @{ K = "Ctrl + Space";           D = "Force autocomplete menu" }
+        @{ K = "Up/Down arrows";         D = "History filtered by what you've typed" }
+        @{ K = "Ctrl + T";              D = "fzf: find files in current folder" }
+        @{ K = "Ctrl + R";              D = "fzf: search command history" }
+        @{ K = "Ctrl + A / Ctrl + E";   D = "Start / end of line" }
+        @{ K = "Alt + D";               D = "Delete word forward" }
+        @{ K = "Ctrl + W";              D = "Delete word backward" }
+        @{ K = "Ctrl + L";              D = "Clear screen" }
+        @{ K = "Ctrl + C";              D = "Cancel running command" }
+    )
+    "FUNCTIONS" = @(
+        @{ K = "top-size [n]";         D = "Top N biggest files in current folder" }
+        @{ K = "top-cpu [n]";          D = "Top N processes by CPU usage" }
+        @{ K = "matar <name>";         D = "Kill processes by name (min 3 chars, asks confirmation)" }
+        @{ K = "puertos";              D = "Listening local ports with process names" }
+        @{ K = "clean-logs [-WhatIf]"; D = "Delete .log and .tmp recursively (-WhatIf = dry run)" }
+        @{ K = "dojo / quiz";          D = "Dojo 1 (command names): -Modo Linux|PowerShell|Cmd, -Preguntas N, -Repaso" }
+        @{ K = "dojo2";                D = "Dojo 2 (full commands, intermediate): same options" }
+        @{ K = "rosetta";              D = "Rosetta table: Linux / PowerShell / CMD equivalences" }
+        @{ K = "tatami [-Repaso]";     D = "Tatami 1: basic practical missions in a temp sandbox" }
+        @{ K = "tatami2 [-Repaso]";    D = "Tatami 2: intermediate missions (text, CSV, rename, try/catch)" }
+        @{ K = "forja [-Repaso]";      D = "Forja: write PowerShell scripts with tests. -Nivel 1|2, -Id, -Lista, -Continuar" }
+        @{ K = "santuario [-Repaso]";  D = "Santuario: write bash scripts (runs in WSL). -Nivel, -Id, -Lista, -Diagnostico" }
+        @{ K = "progreso";             D = "Your stats: mastered, due for review, most-failed items (-Reset to clear)" }
+        @{ K = "Show-Dashboard";       D = "Show dashboard (-Refresh updates cache, -SinDocker skips Docker)" }
+        @{ K = "Measure-Profile";      D = "Measure profile load time" }
+        @{ K = "help-ps";              D = "Show this help" }
+    )
+}
+
+# ================================================================= #
+#                            DASHBOARD                              #
+# ================================================================= #
+function Get-SysInfoCached {
+    param([switch]$Refresh)
+    $dir = if ($env:LOCALAPPDATA) { Join-Path $env:LOCALAPPDATA "CyberProfile" } else { Join-Path $HOME ".cache/cyberprofile" }
+    $file = Join-Path $dir "sysinfo.json"
+    if ($Refresh -and (Test-Path $file)) { Remove-Item $file -Force -ErrorAction SilentlyContinue }
+    if (Test-Path $file) {
+        $edad = (Get-Date) - (Get-Item $file).LastWriteTime
+        if ($edad.TotalHours -lt 24) {
+            try { return (Get-Content $file -Raw | ConvertFrom-Json) } catch {}
+        }
+    }
+    try {
+        $cpu = ((Get-CimInstance Win32_Processor | Select-Object -First 1).Name -replace 'AMD |Intel\(R\) | \d+-Core| Processor| @.*$', '').Trim()
+        $ram = "{0:N2} GB" -f ((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB)
+        $os  = (Get-CimInstance Win32_OperatingSystem).Caption
+    } catch {
+        $cpu = "N/A"; $ram = "N/A"; $os = "N/A"
+    }
+    $info = [pscustomobject]@{ CPU = $cpu; RAM = $ram; OS = $os }
+    try {
+        New-Item -ItemType Directory -Path $dir -Force | Out-Null
+        $info | ConvertTo-Json | Set-Content -Path $file -Encoding UTF8
+    } catch {}
+    return $info
+}
+
 function Show-Dashboard {
-    $c = $global:CY
+    param(
+        [switch]$Refresh,
+        [switch]$SinDocker
+    )
 
-    $cpuName = (Get-CimInstance Win32_Processor -ErrorAction SilentlyContinue)?.Name `
-        -replace 'AMD |Intel\(R\) | \d+-Core| Processor| @.*$', ''
+    $c   = $global:CY
+    $sys = Get-SysInfoCached -Refresh:$Refresh
 
-    $sysInfo = [ordered]@{
+    $sessionInfo = [ordered]@{
         "Started" = (Get-Date -Format "yyyy-MM-dd HH:mm")
         "Shell"   = "$($PSVersionTable.PSVersion.Major).$($PSVersionTable.PSVersion.Minor) $($PSVersionTable.PSEdition)"
-        "CPU"     = if ($cpuName) { $cpuName.Trim() } else { "N/A" }
-        "RAM"     = "{0:N2} GB" -f ((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB)
-        "User"    = "$env:USERNAME"
-        "OS"      = (Get-CimInstance Win32_OperatingSystem).Caption
+        "CPU"     = $sys.CPU
+        "RAM"     = $sys.RAM
+        "User"    = [Environment]::UserName
+        "OS"      = $sys.OS
     }
 
-    # ── Shortcuts — edit to match your tools ──────────────────────
-    $shortcuts = @(
-        @{ Label = "VS Code   (vsc)";  Value = "code ." }
-        @{ Label = "Projects  (proj)"; Value = "code <your-repos-path>" }
-        @{ Label = "Server    (bee)";  Value = "ssh via CYBER_SSH_HOST" }
-        @{ Label = "Help      (help-ps)"; Value = "show all commands" }
-    )
-
-    $features = @(
-        @{ Key = "ls / dir";    Desc = "Terminal-Icons   ->  icons next to files and folders" }
-        @{ Key = "Ctrl+T";      Desc = "Fzf Search       ->  interactive file finder" }
-        @{ Key = "Ctrl+R";      Desc = "Fzf History      ->  search command history" }
-        @{ Key = "Arrow  ->";   Desc = "Autocomplete     ->  accept grey suggestion" }
-        @{ Key = "help-ps";     Desc = "Help             ->  list all available commands" }
-    )
+    $shortcuts = $global:Shortcuts
+    $features  = $global:HelpData["INSTALLED TOOLS"]
 
     $sep  = "=" * 80
     $sep2 = "-" * 80
+    $colIzq = 38
 
     Write-Cyber $sep $c.Magenta
     Write-Host ""
-    Write-Cyber "$("System Info".PadRight(38))| Shortcuts" $c.Green
+    Write-Cyber "$("System Info".PadRight($colIzq))| Quick Reference" $c.Green
     Write-Host ""
 
-    $maxLines = [Math]::Max($sysInfo.Count, $shortcuts.Count)
-    $sysKeys  = @($sysInfo.Keys)
+    $maxLines = [System.Math]::Max($sessionInfo.Count, $shortcuts.Count)
+    $sysKeys  = @($sessionInfo.Keys)
 
     for ($i = 0; $i -lt $maxLines; $i++) {
         if ($i -lt $sysKeys.Count) {
             $k = $sysKeys[$i]
+            $v = "$($sessionInfo[$k])"
+            if ($v.Length -gt 26) { $v = $v.Substring(0, 25) + "..." }
             Write-Cyber "$($k.PadRight(10))" $c.Yellow -NoNewline
             Write-Cyber ": " $c.Magenta -NoNewline
-            Write-Cyber "$("$($sysInfo[$k])".PadRight(24))" $c.Cyan -NoNewline
+            Write-Cyber $v.PadRight(26) $c.Cyan -NoNewline
         } else {
-            Write-Host "".PadRight(38) -NoNewline
+            Write-Host "".PadRight($colIzq) -NoNewline
         }
         if ($i -lt $shortcuts.Count) {
             Write-Cyber "| " $c.Magenta -NoNewline
@@ -173,40 +299,56 @@ function Show-Dashboard {
     Write-Host ""
     Write-Cyber $sep2 $c.Magenta
     Write-Host ""
-    Write-Cyber "  Features" $c.Green
+    Write-Cyber "  Installed Tools   (help-ps for all commands)" $c.Green
     Write-Host ""
     foreach ($f in $features) {
-        Write-Cyber "  $($f.Key.PadRight(14))" $c.Yellow -NoNewline
-        Write-Cyber "  $($f.Desc)" $c.Cyan
+        Write-Cyber "  $($f.K.PadRight(16))" $c.Yellow -NoNewline
+        Write-Cyber "  $($f.D)" $c.Cyan
     }
 
-    # ── Docker status ─────────────────────────────────────────────
-    Write-Host ""
-    Write-Cyber $sep2 $c.Magenta
-    Write-Host ""
-    Write-Cyber "  Docker" $c.Green
-    Write-Host ""
+    if (Get-Command Get-CyberDueCount -ErrorAction SilentlyContinue) {
+        $pend = Get-CyberDueCount
+        if ($pend -gt 0) {
+            Write-Host ""
+            Write-Cyber "  Review due: $pend  ->  dojo/dojo2/tatami/tatami2/forja/santuario with -Repaso" $c.Magenta
+        }
+    }
 
-    if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
-        Write-Cyber "  Docker not installed or not in PATH." $c.Dim
-    } else {
-        try {
-            $containers = docker ps --format "{{.Names}}|{{.Image}}|{{.Status}}|{{.Ports}}" 2>$null
-            if ($containers) {
-                Write-Cyber "  $("NAME".PadRight(22)) $("IMAGE".PadRight(25)) $("STATUS".PadRight(20)) PORTS" $c.Cyan
-                Write-Cyber "  $("-" * 76)" $c.Dark
-                foreach ($line in $containers) {
-                    $p = $line -split "\|"
-                    Write-Cyber "  $($p[0].PadRight(22)) " $c.Yellow -NoNewline
-                    Write-Cyber "$($p[1].PadRight(25)) " $c.Cyan -NoNewline
-                    Write-Cyber "$($p[2].PadRight(20)) " $c.Green -NoNewline
-                    Write-Cyber "$(if ($p[3]) { $p[3] } else { '-' })" $c.Dim
+    if (-not $SinDocker) {
+        Write-Host ""
+        Write-Cyber $sep2 $c.Magenta
+        Write-Host ""
+        Write-Cyber "  Docker" $c.Green
+        Write-Host ""
+        if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
+            Write-Cyber "  Docker not installed or not in PATH." $c.Dim
+        }
+        elseif (-not (Get-Process -Name "com.docker.backend", "dockerd" -ErrorAction SilentlyContinue)) {
+            Write-Cyber "  Docker stopped (start Docker Desktop)." $c.Dim
+        }
+        else {
+            try {
+                $containers = docker ps --format "{{.Names}}|{{.Image}}|{{.Status}}|{{.Ports}}" 2>$null
+                if ($containers) {
+                    Write-Cyber "  $("NAME".PadRight(22)) $("IMAGE".PadRight(25)) $("STATUS".PadRight(20)) PORTS" $c.Cyan
+                    Write-Cyber "  $("-" * 76)" $c.Dark
+                    foreach ($line in $containers) {
+                        $parts  = $line -split "\|"
+                        $name   = $parts[0].PadRight(22)
+                        $image  = $parts[1].PadRight(25)
+                        $status = $parts[2].PadRight(20)
+                        $ports  = if ($parts[3]) { $parts[3] } else { "-" }
+                        Write-Cyber "  $name " $c.Yellow -NoNewline
+                        Write-Cyber "$image " $c.Cyan -NoNewline
+                        Write-Cyber "$status " $c.Green -NoNewline
+                        Write-Cyber "$ports" $c.Dim
+                    }
+                } else {
+                    Write-Cyber "  No active containers." $c.Dim
                 }
-            } else {
-                Write-Cyber "  No active containers." $c.Dim
+            } catch {
+                Write-Cyber "  Could not connect to Docker daemon." $c.Dim
             }
-        } catch {
-            Write-Cyber "  Could not connect to Docker daemon." $c.Dim
         }
     }
 
@@ -215,69 +357,44 @@ function Show-Dashboard {
     Write-Host ""
 }
 
+Show-Dashboard
+
 # ================================================================= #
-#                            HELP                                   #
+#                          HELP                                     #
 # ================================================================= #
 function Show-Help {
     $c   = $global:CY
-    $bar = "=" * 65
+    $bar = "=" * 70
 
-    $tools = @(
-        @{ Name = "Terminal-Icons"; Use = "ls / dir";      Desc = "Icons next to files and folders" }
-        @{ Name = "fzf (PSFzf)";   Use = "Ctrl+T";         Desc = "Interactive fuzzy file finder" }
-        @{ Name = "fzf history";   Use = "Ctrl+R";         Desc = "Search command history" }
-        @{ Name = "PSReadLine";    Use = "Arrow right";    Desc = "Accept autocomplete suggestion (grey)" }
-        @{ Name = "z (zoxide)";    Use = "z folder";       Desc = "Jump to frecent directories" }
-        @{ Name = "Oh My Posh";    Use = "(automatic)";    Desc = "Git branch, path, execution time prompt" }
-    )
-
-    $keys = @(
-        @{ Key = "Tab";             Desc = "Autocomplete commands and paths" }
-        @{ Key = "Ctrl+Space";      Desc = "Force suggestion list" }
-        @{ Key = "Ctrl+T";          Desc = "Open fzf file finder" }
-        @{ Key = "Ctrl+R";          Desc = "Search history with fzf" }
-        @{ Key = "Ctrl+L";          Desc = "Clear screen" }
-        @{ Key = "Ctrl+A / Ctrl+E"; Desc = "Go to start / end of line" }
-        @{ Key = "Alt+D";           Desc = "Delete word forward" }
-        @{ Key = "Ctrl+W";          Desc = "Delete word backward" }
-    )
-
-    $cmds = @(
-        @{ Cmd = "Show-Dashboard";  Desc = "Show system dashboard" }
-        @{ Cmd = "Set-Theme <name>";Desc = "Switch theme: cyberpunk | default" }
-        @{ Cmd = "bee";             Desc = "SSH connect to CYBER_SSH_HOST server" }
-        @{ Cmd = "help-ps";         Desc = "Show this help screen" }
-    )
-
-    Write-Host ""
-    Write-Cyber $bar $c.Magenta
-    Write-Cyber "  INSTALLED TOOLS" $c.Green
-    Write-Cyber $bar $c.Magenta
-    foreach ($t in $tools) {
-        Write-Cyber "  $($t.Name.PadRight(18))" $c.Yellow -NoNewline
-        Write-Cyber "$($t.Use.PadRight(18))" $c.Cyan -NoNewline
-        Write-Cyber "$($t.Desc)" $c.Dim
+    foreach ($seccion in $global:HelpData.Keys) {
+        Write-Host ""
+        Write-Cyber $bar $c.Magenta
+        Write-Cyber "  $seccion" $c.Green
+        Write-Cyber $bar $c.Magenta
+        foreach ($item in $global:HelpData[$seccion]) {
+            Write-Cyber "  $($item.K.PadRight(28))" $c.Yellow -NoNewline
+            Write-Cyber "$($item.D)" $c.Cyan
+        }
     }
     Write-Host ""
-    Write-Cyber $bar $c.Magenta
-    Write-Cyber "  KEYBOARD SHORTCUTS" $c.Green
-    Write-Cyber $bar $c.Magenta
-    foreach ($k in $keys) {
-        Write-Cyber "  $($k.Key.PadRight(22))" $c.Yellow -NoNewline
-        Write-Cyber "$($k.Desc)" $c.Cyan
-    }
-    Write-Host ""
-    Write-Cyber $bar $c.Magenta
-    Write-Cyber "  COMMANDS" $c.Green
-    Write-Cyber $bar $c.Magenta
-    foreach ($cmd in $cmds) {
-        Write-Cyber "  $($cmd.Cmd.PadRight(22))" $c.Yellow -NoNewline
-        Write-Cyber "$($cmd.Desc)" $c.Cyan
-    }
+    Write-Cyber "  Tip: check any shortcut with  Get-PSReadLineKeyHandler" $c.Dim
     Write-Host ""
 }
 
 Set-Alias help-ps Show-Help
 
-# ── Show dashboard on startup ─────────────────────────────────────
-Show-Dashboard
+# ================================================================= #
+#                      MEASURE PROFILE                             #
+# ================================================================= #
+function Measure-Profile {
+    $exe = (Get-Process -Id $PID).Path
+    Write-Host "Measuring (a few seconds)..." -ForegroundColor DarkGray
+    $con = [math]::Round((Measure-Command { & $exe -NoLogo -Command exit }).TotalMilliseconds, 0)
+    $sin = [math]::Round((Measure-Command { & $exe -NoLogo -NoProfile -Command exit }).TotalMilliseconds, 0)
+    Write-Host "With profile : $con ms"
+    Write-Host "Without      : $sin ms"
+    Write-Host "Profile cost : $($con - $sin) ms"
+    if (($con - $sin) -gt 1000) {
+        Write-Host "Over 1s: check Docker/CIM/modules (Show-Dashboard -SinDocker, -Refresh)." -ForegroundColor Yellow
+    }
+}
