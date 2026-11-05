@@ -154,6 +154,30 @@ powershell-cyberpunk/
 - **Git** (for installation)
 - **WSL** (only needed for Santuario — bash training)
 
+---
+
+## Evolution
+
+Where it all started — inspired by [Takuya's PowerShell setup](https://github.com/craftzdog/dotfiles-public) and turned into something of its own.
+
+### The inspiration — Takuya's terminal
+
+<img src="img/takuya-powerShell.png" alt="Takuya's PowerShell" width="100%"/>
+
+### First version — basic dashboard with shortcuts
+
+<img src="img/preview.png" alt="First version" width="100%"/>
+
+### The PR that started it — [craftzdog/dotfiles-public#190](https://github.com/craftzdog/dotfiles-public/pull/190)
+
+<img src="img/pr190.png" alt="PR 190" width="100%"/>
+
+### Current version — full training system, ergonomic functions, cached dashboard
+
+<img src="img/dashboard.png" alt="Current version" width="100%"/>
+
+---
+
 ## License
 
 MIT
