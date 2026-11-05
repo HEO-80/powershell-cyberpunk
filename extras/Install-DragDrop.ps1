@@ -13,6 +13,8 @@
 #  NOTA: El menu de clic derecho necesita ejecutar como Admin        #
 # ================================================================= #
 
+& {
+
 $ErrorActionPreference = "Stop"
 $esc = [char]27
 
@@ -373,3 +375,5 @@ Write-Host "${esc}[38;2;252;238;10m  3. En la terminal:${esc}[0m recibir C:\ruta
 Write-Host ""
 Write-Info "Para desinstalar el menu: Uninstall-CyberToolsMenu (como Admin)"
 Write-Host ""
+
+} # fin del bloque & { }
