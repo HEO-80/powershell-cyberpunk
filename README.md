@@ -1,8 +1,6 @@
 <div align="center">
 
-<div align="center">
-  <img src="img/netwatch-header.svg" alt="NETWATCH OS v2.077"/>
-</div>
+<img src="img/netwatch-header.svg" alt="NETWATCH OS v2.077"/>
 
 <pre>
  ██╗  ██╗███████╗ ██████╗    ██████╗ ███████╗██╗   ██╗
@@ -28,6 +26,27 @@ irm https://raw.githubusercontent.com/HEO-80/powershell-cyberpunk/main/install.p
 This installs everything automatically: Oh My Posh, Nerd Font, Terminal-Icons, fzf, zoxide, PSFzf, and hooks into your `$PROFILE`.
 
 > **After installing**, set your terminal font to **CaskaydiaCove Nerd Font** in Windows Terminal: `Settings > Profiles > Defaults > Font Face`.
+
+---
+
+## Screenshots
+
+### Dashboard on startup
+
+<img src="img/dashboard.png" alt="Dashboard" width="100%"/>
+
+### Full dashboard with Docker and training reminders
+
+<img src="img/dashboard-full.png" alt="Full Dashboard" width="100%"/>
+
+### Terminal-Icons — icons for files and folders
+
+<img src="img/terminal-icons.png" alt="Terminal Icons" width="100%"/>
+
+### help-ps — all commands, shortcuts and tools
+
+<img src="img/help-ps-1.png" alt="Help 1" width="100%"/>
+<img src="img/help-ps-2.png" alt="Help 2" width="100%"/>
 
 ---
 
