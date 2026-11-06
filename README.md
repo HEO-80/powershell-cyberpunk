@@ -17,15 +17,30 @@
 
 ---
 
-## ⚡ Quick Install (one command)
+## ⚡ Quick Install
+
+Open PowerShell and run these commands in order:
 
 ```powershell
+# 1. Install Git (skip if you already have it)
+winget install Git.Git -s winget --accept-package-agreements --accept-source-agreements
+
+# 2. Install the terminal (theme + training + tools)
 irm https://raw.githubusercontent.com/HEO-80/powershell-cyberpunk/main/install.ps1 | iex
+
+# 3. Restart PowerShell, then install extras (optional)
+irm https://raw.githubusercontent.com/HEO-80/powershell-cyberpunk/main/extras/FileTools.ps1 | iex
+irm https://raw.githubusercontent.com/HEO-80/powershell-cyberpunk/main/extras/PSRemoting.ps1 | iex
+irm https://raw.githubusercontent.com/HEO-80/powershell-cyberpunk/main/extras/EventMonitor.ps1 | iex
+irm https://raw.githubusercontent.com/HEO-80/powershell-cyberpunk/main/extras/Install-AI.ps1 | iex
+irm https://raw.githubusercontent.com/HEO-80/powershell-cyberpunk/main/extras/Install-DragDrop.ps1 | iex
 ```
 
-This installs everything automatically: Oh My Posh, Nerd Font, Terminal-Icons, fzf, zoxide, PSFzf, and hooks into your `$PROFILE`.
+Step 2 installs everything automatically: Oh My Posh, Nerd Font, Terminal-Icons, fzf, zoxide, PSFzf, clones the repo and hooks into your `$PROFILE`.
 
 > **After installing**, set your terminal font to **CaskaydiaCove Nerd Font** in Windows Terminal: `Settings > Profiles > Defaults > Font Face`.
+>
+> **If winget doesn't work** (e.g. Admin user without Microsoft Store), install Git manually from [git-scm.com](https://git-scm.com/download/win) and skip step 1.
 
 ---
 
