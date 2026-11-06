@@ -228,46 +228,52 @@ if ($_needsHook) {
     Write-OK "Profile already configured"
 }
 
-# ── 6. Configure Windows Terminal font automatically ────────────
-Write-Step "Configuring Windows Terminal font..."
-$_wtSettings = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
-if (Test-Path $_wtSettings) {
+# ── 6. Configure Windows Terminal (font + background) ────────────
+Write-Step "Configuring Windows Terminal..."
+
+$_bgImage = Join-Path $_root "img\bg-cyberpunk.gif"
+if (-not (Test-Path $_bgImage)) {
+    Write-Step "Descargando fondo cyberpunk..."
     try {
-        $_wtJson = Get-Content $_wtSettings -Raw | ConvertFrom-Json
-        # Set font in defaults profile
-        if (-not $_wtJson.profiles.defaults) {
-            $_wtJson.profiles | Add-Member -NotePropertyName "defaults" -NotePropertyValue @{} -Force
-        }
-        if (-not $_wtJson.profiles.defaults.font) {
-            $_wtJson.profiles.defaults | Add-Member -NotePropertyName "font" -NotePropertyValue @{} -Force
-        }
-        $_wtJson.profiles.defaults.font | Add-Member -NotePropertyName "face" -NotePropertyValue "CaskaydiaCove Nerd Font" -Force
-        $_wtJson | ConvertTo-Json -Depth 20 | Set-Content $_wtSettings -Encoding UTF8
-        Write-OK "Windows Terminal font set to CaskaydiaCove Nerd Font"
-    } catch {
-        Write-Warn "No se pudo configurar la fuente automaticamente."
-        Write-Warn "Cambiala manualmente: Settings > Profiles > Defaults > Font Face"
-    }
-} else {
-    # Intentar ruta alternativa (Windows Terminal Preview o instalacion no-Store)
-    $_wtSettingsAlt = "$env:LOCALAPPDATA\Microsoft\Windows Terminal\settings.json"
-    if (Test-Path $_wtSettingsAlt) {
+        $_bgUrl = "https://raw.githubusercontent.com/HEO-80/powershell-cyberpunk/main/img/bg-cyberpunk.gif"
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        (New-Object System.Net.WebClient).DownloadFile($_bgUrl, $_bgImage)
+    } catch { $_bgImage = $null }
+}
+
+foreach ($_wtPath in @(
+    "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json",
+    "$env:LOCALAPPDATA\Microsoft\Windows Terminal\settings.json"
+)) {
+    if (Test-Path $_wtPath) {
         try {
-            $_wtJson = Get-Content $_wtSettingsAlt -Raw | ConvertFrom-Json
+            $_wtJson = Get-Content $_wtPath -Raw | ConvertFrom-Json
             if (-not $_wtJson.profiles.defaults) {
                 $_wtJson.profiles | Add-Member -NotePropertyName "defaults" -NotePropertyValue @{} -Force
             }
+            # Fuente
             if (-not $_wtJson.profiles.defaults.font) {
                 $_wtJson.profiles.defaults | Add-Member -NotePropertyName "font" -NotePropertyValue @{} -Force
             }
             $_wtJson.profiles.defaults.font | Add-Member -NotePropertyName "face" -NotePropertyValue "CaskaydiaCove Nerd Font" -Force
-            $_wtJson | ConvertTo-Json -Depth 20 | Set-Content $_wtSettingsAlt -Encoding UTF8
-            Write-OK "Windows Terminal font set to CaskaydiaCove Nerd Font"
+            Write-OK "Font set to CaskaydiaCove Nerd Font"
+            # Fondo con opacidad
+            if ($_bgImage -and (Test-Path $_bgImage)) {
+                $_wtJson.profiles.defaults | Add-Member -NotePropertyName "backgroundImage" -NotePropertyValue $_bgImage -Force
+                $_wtJson.profiles.defaults | Add-Member -NotePropertyName "backgroundImageOpacity" -NotePropertyValue 0.15 -Force
+                $_wtJson.profiles.defaults | Add-Member -NotePropertyName "backgroundImageStretchMode" -NotePropertyValue "uniformToFill" -Force
+                Write-OK "Background image set (15% opacity)"
+            }
+            # Opacidad acrilica
+            $_wtJson.profiles.defaults | Add-Member -NotePropertyName "opacity" -NotePropertyValue 85 -Force
+            $_wtJson.profiles.defaults | Add-Member -NotePropertyName "useAcrylic" -NotePropertyValue $true -Force
+            Write-OK "Acrylic transparency set (85%)"
+
+            $_wtJson | ConvertTo-Json -Depth 20 | Set-Content $_wtPath -Encoding UTF8
         } catch {
-            Write-Warn "Cambia la fuente manualmente: Settings > Profiles > Defaults > Font Face"
+            Write-Warn "No se pudo configurar Windows Terminal: $($_.Exception.Message)"
         }
-    } else {
-        Write-Warn "No se encontro Windows Terminal. Cambia la fuente manualmente cuando lo instales."
+        break
     }
 }
 
