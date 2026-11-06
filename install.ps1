@@ -187,16 +187,43 @@ if (-not (Get-Command zoxide -ErrorAction SilentlyContinue)) {
 # ── 5. Hook into $PROFILE ────────────────────────────────────────
 Write-Step "Setting up PowerShell profile..."
 $_profileLine = ". `"$_root\Profile.ps1`""
+$_profilePath = $PROFILE
 
-if (-not (Test-Path $PROFILE)) {
-    New-Item -ItemType File -Path $PROFILE -Force | Out-Null
-    Write-Warn "Created new profile at: $PROFILE"
+# Crear directorio del perfil si no existe
+$_profileDir = Split-Path $_profilePath
+if (-not (Test-Path $_profileDir)) {
+    New-Item -ItemType Directory -Path $_profileDir -Force | Out-Null
 }
 
-$_profileContent = Get-Content $PROFILE -Raw -ErrorAction SilentlyContinue
-if ($_profileContent -notmatch [regex]::Escape("powershell-cyberpunk")) {
-    Add-Content -Path $PROFILE -Value "`n# powershell-cyberpunk`n$_profileLine"
-    Write-OK "Profile hooked: $PROFILE"
+# Crear archivo del perfil si no existe
+if (-not (Test-Path $_profilePath)) {
+    New-Item -ItemType File -Path $_profilePath -Force | Out-Null
+    Write-Warn "Created new profile at: $_profilePath"
+}
+
+# Comprobar si la linea ya esta (leyendo el contenido real)
+$_profileContent = Get-Content $_profilePath -Raw -ErrorAction SilentlyContinue
+$_needsHook = $true
+if ($_profileContent -and $_profileContent.Contains("powershell-cyberpunk")) {
+    $_needsHook = $false
+}
+
+if ($_needsHook) {
+    # Escribir la linea con Set-Content si el archivo esta vacio, Add-Content si tiene algo
+    if (-not $_profileContent -or $_profileContent.Trim().Length -eq 0) {
+        Set-Content -Path $_profilePath -Value "# powershell-cyberpunk`n$_profileLine" -Encoding UTF8
+    } else {
+        Add-Content -Path $_profilePath -Value "`n# powershell-cyberpunk`n$_profileLine"
+    }
+    # Verificar que se escribio
+    $_check = Get-Content $_profilePath -Raw -ErrorAction SilentlyContinue
+    if ($_check -and $_check.Contains("powershell-cyberpunk")) {
+        Write-OK "Profile hooked: $_profilePath"
+    } else {
+        Write-Fail "No se pudo escribir en el perfil: $_profilePath"
+        Write-Warn "Anade esta linea manualmente a tu `$PROFILE:"
+        Write-Host "  $_profileLine" -ForegroundColor Cyan
+    }
 } else {
     Write-OK "Profile already configured"
 }
