@@ -201,14 +201,60 @@ if ($_profileContent -notmatch [regex]::Escape("powershell-cyberpunk")) {
     Write-OK "Profile already configured"
 }
 
-# ── Done ─────────────────────────────────────────────────────────
+# ── 6. Configure Windows Terminal font automatically ────────────
+Write-Step "Configuring Windows Terminal font..."
+$_wtSettings = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+if (Test-Path $_wtSettings) {
+    try {
+        $_wtJson = Get-Content $_wtSettings -Raw | ConvertFrom-Json
+        # Set font in defaults profile
+        if (-not $_wtJson.profiles.defaults) {
+            $_wtJson.profiles | Add-Member -NotePropertyName "defaults" -NotePropertyValue @{} -Force
+        }
+        if (-not $_wtJson.profiles.defaults.font) {
+            $_wtJson.profiles.defaults | Add-Member -NotePropertyName "font" -NotePropertyValue @{} -Force
+        }
+        $_wtJson.profiles.defaults.font | Add-Member -NotePropertyName "face" -NotePropertyValue "CaskaydiaCove Nerd Font" -Force
+        $_wtJson | ConvertTo-Json -Depth 20 | Set-Content $_wtSettings -Encoding UTF8
+        Write-OK "Windows Terminal font set to CaskaydiaCove Nerd Font"
+    } catch {
+        Write-Warn "No se pudo configurar la fuente automaticamente."
+        Write-Warn "Cambiala manualmente: Settings > Profiles > Defaults > Font Face"
+    }
+} else {
+    # Intentar ruta alternativa (Windows Terminal Preview o instalacion no-Store)
+    $_wtSettingsAlt = "$env:LOCALAPPDATA\Microsoft\Windows Terminal\settings.json"
+    if (Test-Path $_wtSettingsAlt) {
+        try {
+            $_wtJson = Get-Content $_wtSettingsAlt -Raw | ConvertFrom-Json
+            if (-not $_wtJson.profiles.defaults) {
+                $_wtJson.profiles | Add-Member -NotePropertyName "defaults" -NotePropertyValue @{} -Force
+            }
+            if (-not $_wtJson.profiles.defaults.font) {
+                $_wtJson.profiles.defaults | Add-Member -NotePropertyName "font" -NotePropertyValue @{} -Force
+            }
+            $_wtJson.profiles.defaults.font | Add-Member -NotePropertyName "face" -NotePropertyValue "CaskaydiaCove Nerd Font" -Force
+            $_wtJson | ConvertTo-Json -Depth 20 | Set-Content $_wtSettingsAlt -Encoding UTF8
+            Write-OK "Windows Terminal font set to CaskaydiaCove Nerd Font"
+        } catch {
+            Write-Warn "Cambia la fuente manualmente: Settings > Profiles > Defaults > Font Face"
+        }
+    } else {
+        Write-Warn "No se encontro Windows Terminal. Cambia la fuente manualmente cuando lo instales."
+    }
+}
+
+# ── 7. Load profile now ─────────────────────────────────────────
 Write-Host ""
 Write-Host "${esc}[38;2;57;255;20m  ========================================${esc}[0m"
 Write-Host "${esc}[38;2;57;255;20m   Installation complete!                 ${esc}[0m"
 Write-Host "${esc}[38;2;57;255;20m  ========================================${esc}[0m"
 Write-Host ""
-Write-Host "  Restart PowerShell or run: ${esc}[38;2;252;238;10m. `$PROFILE${esc}[0m"
-Write-Host ""
-Write-Host "  ${esc}[38;2;136;136;136mIMPORTANT: Set your terminal font to 'CaskaydiaCove Nerd Font'${esc}[0m"
-Write-Host "  ${esc}[38;2;136;136;136mWindows Terminal: Settings > Profiles > Defaults > Font Face${esc}[0m"
+Write-Step "Cargando tu terminal..."
+try {
+    . $PROFILE
+} catch {
+    Write-Warn "No se pudo cargar el perfil automaticamente."
+    Write-Host "  Cierra y abre PowerShell para verlo."
+}
 Write-Host ""
