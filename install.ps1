@@ -118,16 +118,47 @@ if (-not $_fontInstalled) {
     $_fontInstalled = Get-ChildItem "C:\Windows\Fonts\*CaskaydiaCove*" -ErrorAction SilentlyContinue
 }
 if (-not $_fontInstalled) {
-    Write-Warn "Installing CaskaydiaCove Nerd Font via oh-my-posh..."
-    try {
-        oh-my-posh font install CascadiaCode 2>$null
-        Write-OK "CaskaydiaCove Nerd Font installed"
-    } catch {
-        Write-Warn "Could not auto-install font. Download manually from: https://www.nerdfonts.com/font-downloads"
+    # Intento 1: oh-my-posh font install
+    $_fontOK = $false
+    if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) {
+        Write-Warn "Installing CaskaydiaCove Nerd Font via oh-my-posh..."
+        try {
+            oh-my-posh font install CascadiaCode 2>$null
+            $_fontOK = $true
+        } catch {}
     }
+    # Intento 2: descarga directa del ZIP de Nerd Fonts
+    if (-not $_fontOK) {
+        Write-Step "Descargando fuente directamente..."
+        try {
+            $_fontZip = Join-Path $env:TEMP "CascadiaCode-NF.zip"
+            $_fontDir = Join-Path $env:TEMP "CascadiaCode-NF"
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+            (New-Object System.Net.WebClient).DownloadFile("https://github.com/ryanoasis/nerd-fonts/releases/latest/download/CascadiaCode.zip", $_fontZip)
+            Expand-Archive $_fontZip -DestinationPath $_fontDir -Force
+            # Instalar fuentes en la carpeta de usuario
+            $fontsFolder = "$env:LOCALAPPDATA\Microsoft\Windows\Fonts"
+            if (-not (Test-Path $fontsFolder)) { New-Item -ItemType Directory -Path $fontsFolder -Force | Out-Null }
+            Get-ChildItem $_fontDir -Filter "*.ttf" | ForEach-Object {
+                Copy-Item $_.FullName $fontsFolder -Force
+            }
+            Remove-Item $_fontZip, $_fontDir -Recurse -Force -ErrorAction SilentlyContinue
+            $_fontOK = $true
+        } catch {
+            Write-Warn "No se pudo instalar la fuente: $($_.Exception.Message)"
+        }
+    }
+    if ($_fontOK) { Write-OK "CaskaydiaCove Nerd Font installed" }
+    else { Write-Warn "Descarga la fuente manualmente: https://www.nerdfonts.com/font-downloads" }
 } else { Write-OK "Nerd Font already installed" }
 
 # ── 3. Install PowerShell modules ────────────────────────────────
+# Instalar NuGet silenciosamente para evitar que pregunte
+if (-not (Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction SilentlyContinue | Where-Object { $_.Version -ge "2.8.5.201" })) {
+    Write-Step "Installing NuGet provider..."
+    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -ErrorAction SilentlyContinue | Out-Null
+}
+
 $_modules = @("Terminal-Icons", "PSFzf")
 foreach ($_mod in $_modules) {
     Write-Step "Checking module: $_mod..."
