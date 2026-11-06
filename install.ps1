@@ -46,15 +46,46 @@ if (-not $_root -or -not (Test-Path (Join-Path $_root "themes"))) {
         # Install Git automatically if missing
         if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
             Write-Warn "Git no esta instalado. Instalando..."
-            winget install Git.Git -s winget --accept-package-agreements --accept-source-agreements 2>$null
-            # Refresh PATH so git is available now
-            $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH", "User") + ";" + [System.Environment]::GetEnvironmentVariable("PATH", "Machine")
-            if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-                Write-Fail "No se pudo instalar Git automaticamente."
-                Write-Fail "Instala Git manualmente: https://git-scm.com/download/win"
+
+            # Intento 1: winget
+            $_gitInstalled = $false
+            if (Get-Command winget -ErrorAction SilentlyContinue) {
+                Write-Step "Intentando con winget..."
+                winget install Git.Git -s winget --accept-package-agreements --accept-source-agreements 2>$null
+                $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH", "User") + ";" + [System.Environment]::GetEnvironmentVariable("PATH", "Machine")
+                if (Get-Command git -ErrorAction SilentlyContinue) { $_gitInstalled = $true }
+            }
+
+            # Intento 2: descarga directa e instalacion silenciosa
+            if (-not $_gitInstalled) {
+                Write-Step "Descargando Git directamente..."
+                $_gitUrl = "https://github.com/git-for-windows/git/releases/download/v2.47.1.windows.1/Git-2.47.1-64-bit.exe"
+                $_gitExe = Join-Path $env:TEMP "git-installer.exe"
+                try {
+                    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+                    (New-Object System.Net.WebClient).DownloadFile($_gitUrl, $_gitExe)
+                    Write-Step "Instalando Git (silencioso)..."
+                    Start-Process $_gitExe -ArgumentList "/VERYSILENT /NORESTART /NOCANCEL /SP- /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS /COMPONENTS=`"icons,ext\reg\shellhere,assoc,assoc_sh`"" -Wait
+                    Remove-Item $_gitExe -ErrorAction SilentlyContinue
+                    # Refresh PATH
+                    $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH", "User") + ";" + [System.Environment]::GetEnvironmentVariable("PATH", "Machine")
+                    # Git se instala en Program Files, anadirlo al PATH de la sesion
+                    if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+                        $gitPath = "C:\Program Files\Git\cmd"
+                        if (Test-Path $gitPath) { $env:PATH += ";$gitPath" }
+                    }
+                    if (Get-Command git -ErrorAction SilentlyContinue) { $_gitInstalled = $true }
+                } catch {
+                    Write-Warn "No se pudo descargar: $($_.Exception.Message)"
+                }
+            }
+
+            if (-not $_gitInstalled) {
+                Write-Fail "No se pudo instalar Git."
+                Write-Fail "Instala manualmente: https://git-scm.com/download/win"
                 return
             }
-            Write-OK "Git instalado"
+            Write-OK "Git instalado: $(git --version)"
         }
 
         Write-Step "Cloning powershell-cyberpunk..."
