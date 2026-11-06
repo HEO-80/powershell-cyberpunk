@@ -35,7 +35,7 @@ if (-not $_root -or -not (Test-Path (Join-Path $_root "themes"))) {
 
     if (Test-Path $_installDir) {
         Write-Step "Updating existing installation..."
-        git -C $_installDir pull --ff-only 2>$null
+        $null = git -C $_installDir pull --ff-only 2>&1
         if ($LASTEXITCODE -ne 0) {
             Write-Warn "Could not update. Removing and re-cloning..."
             Remove-Item $_installDir -Recurse -Force
