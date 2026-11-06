@@ -43,15 +43,24 @@ if (-not $_root -or -not (Test-Path (Join-Path $_root "themes"))) {
     }
 
     if (-not (Test-Path $_installDir)) {
-        Write-Step "Cloning powershell-cyberpunk..."
-        if (Get-Command git -ErrorAction SilentlyContinue) {
-            git clone --depth 1 https://github.com/HEO-80/powershell-cyberpunk.git $_installDir
-            if ($LASTEXITCODE -ne 0) {
-                Write-Fail "git clone failed. Install git first: winget install Git.Git"
+        # Install Git automatically if missing
+        if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+            Write-Warn "Git no esta instalado. Instalando..."
+            winget install Git.Git -s winget --accept-package-agreements --accept-source-agreements 2>$null
+            # Refresh PATH so git is available now
+            $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH", "User") + ";" + [System.Environment]::GetEnvironmentVariable("PATH", "Machine")
+            if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+                Write-Fail "No se pudo instalar Git automaticamente."
+                Write-Fail "Instala Git manualmente: https://git-scm.com/download/win"
                 return
             }
-        } else {
-            Write-Fail "Git is required. Install it: winget install Git.Git"
+            Write-OK "Git instalado"
+        }
+
+        Write-Step "Cloning powershell-cyberpunk..."
+        git clone --depth 1 https://github.com/HEO-80/powershell-cyberpunk.git $_installDir
+        if ($LASTEXITCODE -ne 0) {
+            Write-Fail "git clone failed."
             return
         }
     }
