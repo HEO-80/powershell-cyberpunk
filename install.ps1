@@ -10,7 +10,7 @@
 #    .\powershell-cyberpunk\install.ps1                             #
 # ================================================================= #
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
 $esc = [char]27
 
 function Write-Step  { param($t) Write-Host "${esc}[38;2;252;238;10m  > $t${esc}[0m" }
