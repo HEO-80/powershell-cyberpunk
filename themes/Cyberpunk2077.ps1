@@ -146,14 +146,48 @@ function clean-logs {
 # ================================================================= #
 #                     LOAD TRAINING MODULES                        #
 # ================================================================= #
-# Training files live in ../training/ relative to this theme file
+# Only Motor.ps1 loads at startup (the Leitner engine, ~50ms).
+# All other modules load ON DEMAND the first time you run their command.
+# This saves ~3 seconds of startup time.
+
 $_trainingDir = Join-Path (Split-Path $PSScriptRoot) "training"
 if (Test-Path $_trainingDir) {
-    # Motor.ps1 first (provides the Leitner engine for all training)
-    foreach ($f in "Motor.ps1", "Dojo.ps1", "Dojo2.ps1", "Tatami1.ps1", "Tatami2.ps1", "Forja.ps1", "Santuario.ps1") {
-        $ruta = Join-Path $_trainingDir $f
-        if (Test-Path $ruta) { . $ruta }
+    # Motor.ps1 — always loaded (provides progress tracking for all modules)
+    $ruta = Join-Path $_trainingDir "Motor.ps1"
+    if (Test-Path $ruta) { try { . $ruta } catch {} }
+
+    # Lazy-load wrapper: creates a stub function for each module.
+    # The first time you call dojo/tatami/etc, it loads the real file and re-runs.
+    function New-LazyTrainingCommand {
+        param([string]$CommandName, [string]$FileName)
+        $filePath = Join-Path $_trainingDir $FileName
+        if (Test-Path $filePath) {
+            $sb = [scriptblock]::Create(@"
+                # Remove this stub and load the real module
+                Remove-Item "Function:\$CommandName" -ErrorAction SilentlyContinue
+                try { . "$filePath" } catch { Write-Host "Error loading $FileName : `$(`$_.Exception.Message)" -ForegroundColor Red; return }
+                # Now call the real function with the original arguments
+                if (Get-Command "$CommandName" -ErrorAction SilentlyContinue) { & "$CommandName" @args }
+"@)
+            Set-Item "Function:global:$CommandName" $sb
+        }
     }
+
+    # Register lazy stubs for each training module's entry-point commands
+    # Dojo.ps1 -> dojo, quiz, rosetta
+    New-LazyTrainingCommand "dojo"      "Dojo.ps1"
+    New-LazyTrainingCommand "quiz"      "Dojo.ps1"
+    New-LazyTrainingCommand "rosetta"   "Dojo.ps1"
+    # Dojo2.ps1 -> dojo2
+    New-LazyTrainingCommand "dojo2"     "Dojo2.ps1"
+    # Tatami1.ps1 -> tatami
+    New-LazyTrainingCommand "tatami"    "Tatami1.ps1"
+    # Tatami2.ps1 -> tatami2
+    New-LazyTrainingCommand "tatami2"   "Tatami2.ps1"
+    # Forja.ps1 -> forja
+    New-LazyTrainingCommand "forja"     "Forja.ps1"
+    # Santuario.ps1 -> santuario
+    New-LazyTrainingCommand "santuario" "Santuario.ps1"
 }
 
 # ================================================================= #
@@ -314,16 +348,15 @@ function Show-Dashboard {
         }
     }
 
-    if (-not $SinDocker) {
+    # Docker: only show section if docker is installed AND running (fast check)
+    if (-not $SinDocker -and (Get-Command docker -ErrorAction SilentlyContinue)) {
+        $dockerRunning = Get-Process -Name "com.docker.backend", "dockerd" -ErrorAction SilentlyContinue
         Write-Host ""
         Write-Cyber $sep2 $c.Magenta
         Write-Host ""
         Write-Cyber "  Docker" $c.Green
         Write-Host ""
-        if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
-            Write-Cyber "  Docker not installed or not in PATH." $c.Dim
-        }
-        elseif (-not (Get-Process -Name "com.docker.backend", "dockerd" -ErrorAction SilentlyContinue)) {
+        if (-not $dockerRunning) {
             Write-Cyber "  Docker stopped (start Docker Desktop)." $c.Dim
         }
         else {
